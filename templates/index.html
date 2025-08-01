@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Interview Coach</title>
+</head>
+<body>
+  <h1>Upload Resume</h1>
+  <form id="resumeForm">
+    <input type="file" name="resume" id="resume" accept="application/pdf">
+    <input type="text" id="role" placeholder="Role you're applying for" />
+    <button type="submit">Upload & Generate Questions</button>
+  </form>
+
+  <h2>Generated Questions</h2>
+  <ol id="questionList"></ol>
+
+  <script>
+    document.getElementById("resumeForm").onsubmit = async function(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("resume", document.getElementById("resume").files[0]);
+
+      const role = document.getElementById("role").value;
+      const uploadRes = await fetch("/upload", {
+        method: "POST",
+        body: formData
+      });
+      const uploadData = await uploadRes.json();
+
+      const genRes = await fetch("/generate_questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role, resume_text: uploadData.text })
+      });
+
+      const genData = await genRes.json();
+      const questionList = document.getElementById("questionList");
+      questionList.innerHTML = "";
+      genData.questions.forEach(q => {
+        const li = document.createElement("li");
+        li.textContent = q;
+        questionList.appendChild(li);
+      });
+    };
+  </script>
+</body>
+</html>
